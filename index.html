@@ -5,20 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>QC Coconut RM</title>
 <link rel="manifest" href="manifest.json">
-
 <style>
 body{font-family:Arial;background:#eef2f7;margin:0}
 .wrap{max-width:430px;margin:auto;background:#fff;min-height:100vh;padding:16px}
 h2{text-align:center;color:#15803d}
 label{font-weight:bold;font-size:14px}
-input,select,textarea,button{
-width:100%;padding:10px;margin:6px 0;
-border:1px solid #ccc;border-radius:8px;
-box-sizing:border-box}
+input,select,textarea,button{width:100%;padding:10px;margin:6px 0;box-sizing:border-box;border:1px solid #ccc;border-radius:8px}
 button{background:#16a34a;color:#fff;border:none;font-weight:bold}
 .row{display:flex;gap:8px}
 .row input{flex:1}
-#result{padding:12px;border-radius:8px;margin:10px 0}
+#result{padding:12px;border-radius:8px;font-weight:bold;margin:10px 0}
 .green{background:#bbf7d0}
 .yellow{background:#fef08a}
 .orange{background:#fdba74}
@@ -66,7 +62,7 @@ button{background:#16a34a;color:#fff;border:none;font-weight:bold}
 
 <div id="ph1" style="display:none">
 <label>ค่า pH</label>
-<input id="ps">
+<input id="ps" placeholder="6.00">
 </div>
 
 <label>รสชาติ</label>
@@ -91,7 +87,7 @@ button{background:#16a34a;color:#fff;border:none;font-weight:bold}
 <div id="result"></div>
 
 <label>ข้อความสำหรับ LINE</label>
-<textarea id="line" rows="8"></textarea>
+<textarea id="line" rows="9"></textarea>
 
 <div class="row">
 <button onclick="copyText()">📋 Copy</button>
@@ -101,13 +97,12 @@ button{background:#16a34a;color:#fff;border:none;font-weight:bold}
 <hr>
 
 <h3>📚 ประวัติย้อนหลัง</h3>
-<input id="search" type="date" onchange="showHistory()">
+<input id="search" type="date">
 <div id="history"></div>
 
 </div>
 
 <script>
-
 date.value=new Date().toISOString().slice(0,10);
 search.value=date.value;
 
@@ -123,11 +118,13 @@ sample.onchange=function(){
  }
 }
 
+search.onchange=showHistory;
+
 function color(d){
- if(d.includes("ปกติ สามารถ")) return "green";
- if(d.includes("2-3")) return "yellow";
- if(d.includes("1-2")) return "orange";
- if(d.includes("1 ชม.")) return "redlight";
+ if(d=="ปกติ สามารถรอการใช้คั้นได้") return "green";
+ if(d=="ควรใช้คั้นภายใน 2-3 ชม.") return "yellow";
+ if(d=="ควรใช้คั้นภายใน 1-2 ชม.") return "orange";
+ if(d=="ควรใช้คั้นภายใน 1 ชม. และมีมะพร้าวปกติผสม") return "redlight";
  return "red";
 }
 
@@ -141,7 +138,7 @@ function calc(){
 
  if(sample.value=="3"){
 
-   let arr=[+p1.value,+p2.value,+p3.value];
+   let arr=[Number(p1.value),Number(p2.value),Number(p3.value)];
 
    let lt585=arr.filter(v=>v<5.85).length;
    let lt575=arr.filter(v=>v<5.75).length;
@@ -164,7 +161,7 @@ function calc(){
         decision="ไม่ควรใช้คั้นไปสินค้าปกติ";
       }
 
-   }else if(avg>=5.9){
+   }else if(avg>=5.90){
 
       if(t=="ปกติ"&&s=="ปกติ"){
         decision="ควรใช้คั้นภายใน 2-3 ชม.";
@@ -205,21 +202,28 @@ function calc(){
  }
 
  result.className=color(decision);
- result.innerHTML="<b>"+decision+"</b>";
-let icon="🟢";
+ result.innerHTML=decision;
 
-if(decision=="ปกติ สามารถรอการใช้คั้นได้"){
-  icon="🟢";
-}else if(decision=="ควรใช้คั้นภายใน 2-3 ชม."){
-  icon="🟡";
-}else if(decision=="ควรใช้คั้นภายใน 1-2 ชม."){
-  icon="🟠";
-}else if(decision=="ควรใช้คั้นภายใน 1 ชม. และมีมะพร้าวปกติผสม"){
-  icon="🟥";
-}else{
-  icon="🔴";
-}
-line.value=`ผลการตรวจ มะพร้าวขาวในห้องเย็น ณ เวลา $DIL0 น.
+ let icon="🟢";
+
+ if(decision=="ควรใช้คั้นภายใน 2-3 ชม.") icon="🟡";
+ if(decision=="ควรใช้คั้นภายใน 1-2 ชม.") icon="🟠";
+ if(decision=="ควรใช้คั้นภายใน 1 ชม. และมีมะพร้าวปกติผสม") icon="🟥";
+ if(decision=="ไม่ควรใช้คั้นไปสินค้าปกติ") icon="🔴";
+
+ line.value=`ผลการตรวจ มะพร้าวขาวในห้องเย็น ณ เวลา ${time.value} น.
+
+Supplier : ${sup.value}
+วันที่รับเข้า : ${date.value}
+ชนิดวัตถุดิบ : ${mat.value}
+
+pH : ${ph}
+รสชาติ : ${t}
+กลิ่น : ${s}
+Delay Time : ${delay.value} ชม.
+
+${icon} Decision : ${decision}`;
+
  return {decision,ph};
 
 }
@@ -261,7 +265,7 @@ function showHistory(){
  history.innerHTML+=`
  <div class="card">
  <b>${x.supplier}</b><br>
- ${x.time}<br>
+ ${x.date} ${x.time}<br>
  pH : ${x.ph}<br>
  ${x.decision}
  </div>`;
@@ -275,7 +279,7 @@ showHistory();
 if("serviceWorker" in navigator){
  navigator.serviceWorker.register("sw.js");
 }
-
 </script>
+
 </body>
 </html>
