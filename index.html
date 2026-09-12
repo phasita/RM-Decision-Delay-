@@ -1,13 +1,282 @@
-🥥 QC Coconut RM
-เวลาSupplierวันที่รับเข้าชนิดวัตถุดิบมะพร้าวขาวไม่แช่สารมะพร้าวขาวแช่สารจำนวนตัวอย่าง1 ตัวอย่าง3 ตัวอย่าง
-pH
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QC Coconut RM</title>
+<link rel="manifest" href="manifest.json">
 
+<style>
+body{font-family:Arial;background:#eef2f7;margin:0}
+.wrap{max-width:430px;margin:auto;background:#fff;min-height:100vh;padding:16px}
+h2{text-align:center;color:#15803d}
+label{font-weight:bold;font-size:14px}
+input,select,textarea,button{
+width:100%;padding:10px;margin:6px 0;
+border:1px solid #ccc;border-radius:8px;
+box-sizing:border-box}
+button{background:#16a34a;color:#fff;border:none;font-weight:bold}
+.row{display:flex;gap:8px}
+.row input{flex:1}
+#result{padding:12px;border-radius:8px;margin:10px 0}
+.green{background:#bbf7d0}
+.yellow{background:#fef08a}
+.orange{background:#fdba74}
+.redlight{background:#fca5a5}
+.red{background:#dc2626;color:#fff}
+.card{background:#f8fafc;border-radius:8px;padding:10px;margin:8px 0}
+</style>
+</head>
 
+<body>
+<div class="wrap">
 
-รสชาติปกติเปรี้ยวเล็กน้อยเปรี้ยวกลิ่นปกติเปรี้ยวเล็กน้อย/โอ่เล็กน้อยเปรี้ยว/โอ่Delayคำนวณผล
+<h2>🥥 QC Coconut RM</h2>
 
-Copy
-Save
+<label>เวลา ณ ที่ตรวจ</label>
+<input id="time" type="time" value="14:30">
 
-ประวัติ
+<label>Supplier</label>
+<input id="sup" placeholder="พิมพ์ชื่อ Supplier">
 
+<label>วันที่รับเข้า</label>
+<input id="date" type="date">
+
+<label>ชนิดวัตถุดิบ</label>
+<select id="mat">
+<option>มะพร้าวขาวไม่แช่สาร</option>
+<option>มะพร้าวขาวแช่สาร</option>
+</select>
+
+<label>จำนวนตัวอย่าง</label>
+<select id="sample">
+<option value="1">1 ตัวอย่าง</option>
+<option value="3" selected>3 ตัวอย่าง</option>
+</select>
+
+<div id="ph3">
+<label>ค่า pH (3 ค่า)</label>
+<div class="row">
+<input id="p1" placeholder="5.84">
+<input id="p2" placeholder="5.83">
+<input id="p3" placeholder="5.82">
+</div>
+<small>ต่ำกว่า 5.85 ทั้ง 3 ค่า หรือ ต่ำกว่า 5.75 ตั้งแต่ 2 ค่า</small>
+</div>
+
+<div id="ph1" style="display:none">
+<label>ค่า pH</label>
+<input id="ps">
+</div>
+
+<label>รสชาติ</label>
+<select id="taste">
+<option>ปกติ</option>
+<option>เปรี้ยวเล็กน้อย</option>
+<option>เปรี้ยว</option>
+</select>
+
+<label>กลิ่น</label>
+<select id="smell">
+<option>ปกติ</option>
+<option>เปรี้ยวเล็กน้อย/โอ่เล็กน้อย</option>
+<option>เปรี้ยว/โอ่</option>
+</select>
+
+<label>Delay Time (ชม.)</label>
+<input id="delay" placeholder="2">
+
+<button onclick="calc()">คำนวณผลการตัดสินใจ</button>
+
+<div id="result"></div>
+
+<label>ข้อความสำหรับ LINE</label>
+<textarea id="line" rows="8"></textarea>
+
+<div class="row">
+<button onclick="copyText()">📋 Copy</button>
+<button onclick="save()">💾 Save</button>
+</div>
+
+<hr>
+
+<h3>📚 ประวัติย้อนหลัง</h3>
+<input id="search" type="date" onchange="showHistory()">
+<div id="history"></div>
+
+</div>
+
+<script>
+
+date.value=new Date().toISOString().slice(0,10);
+search.value=date.value;
+
+let records=JSON.parse(localStorage.getItem("qc")||"[]");
+
+sample.onchange=function(){
+ if(sample.value=="1"){
+   ph1.style.display="block";
+   ph3.style.display="none";
+ }else{
+   ph1.style.display="none";
+   ph3.style.display="block";
+ }
+}
+
+function color(d){
+ if(d.includes("ปกติ สามารถ")) return "green";
+ if(d.includes("2-3")) return "yellow";
+ if(d.includes("1-2")) return "orange";
+ if(d.includes("1 ชม.")) return "redlight";
+ return "red";
+}
+
+function calc(){
+
+ let decision="";
+ let ph="";
+
+ const t=taste.value;
+ const s=smell.value;
+
+ if(sample.value=="3"){
+
+   let arr=[+p1.value,+p2.value,+p3.value];
+
+   let lt585=arr.filter(v=>v<5.85).length;
+   let lt575=arr.filter(v=>v<5.75).length;
+   let avg=(arr[0]+arr[1]+arr[2])/3;
+
+   let special=(lt585==3)||(lt575>=2);
+
+   ph=`${p1.value} / ${p2.value} / ${p3.value}`;
+
+   if(special){
+
+      if(
+      (t=="ปกติ"&&s=="ปกติ")||
+      (t=="ปกติ"&&s=="เปรี้ยวเล็กน้อย/โอ่เล็กน้อย")||
+      (t=="เปรี้ยวเล็กน้อย"&&s=="ปกติ")||
+      (t=="เปรี้ยวเล็กน้อย"&&s=="เปรี้ยวเล็กน้อย/โอ่เล็กน้อย")
+      ){
+        decision="ควรใช้คั้นภายใน 1 ชม. และมีมะพร้าวปกติผสม";
+      }else{
+        decision="ไม่ควรใช้คั้นไปสินค้าปกติ";
+      }
+
+   }else if(avg>=5.9){
+
+      if(t=="ปกติ"&&s=="ปกติ"){
+        decision="ควรใช้คั้นภายใน 2-3 ชม.";
+      }else{
+        decision="ควรใช้คั้นภายใน 1-2 ชม.";
+      }
+
+   }else{
+
+      decision="ควรใช้คั้นภายใน 1-2 ชม.";
+
+   }
+
+ }else{
+
+   ph=ps.value;
+
+   if(t=="ปกติ"&&s=="ปกติ"){
+      decision="ปกติ สามารถรอการใช้คั้นได้";
+   }else if(
+      (t=="ปกติ"&&s!="ปกติ")||
+      (t=="เปรี้ยวเล็กน้อย"&&s=="ปกติ")
+   ){
+      decision="ควรใช้คั้นภายใน 2-3 ชม.";
+   }else if(
+      t=="เปรี้ยวเล็กน้อย"&&s=="เปรี้ยวเล็กน้อย/โอ่เล็กน้อย"
+   ){
+      decision="ควรใช้คั้นภายใน 1-2 ชม.";
+   }else if(
+      (t=="เปรี้ยวเล็กน้อย"&&s=="เปรี้ยว/โอ่")||
+      (t=="เปรี้ยว"&&s=="ปกติ")
+   ){
+      decision="ควรใช้คั้นภายใน 1 ชม. และมีมะพร้าวปกติผสม";
+   }else{
+      decision="ไม่ควรใช้คั้นไปสินค้าปกติ";
+   }
+
+ }
+
+ result.className=color(decision);
+ result.innerHTML="<b>"+decision+"</b>";
+
+ line.value=
+`ผลการตรวจ มะพร้าวขาวในห้องเย็น ณ เวลา ${time.value} น.
+
+Supplier : ${sup.value}
+วันที่รับเข้า : ${date.value}
+ชนิดวัตถุดิบ : ${mat.value}
+
+pH : ${ph}
+รสชาติ : ${t}
+กลิ่น : ${s}
+Delay Time : ${delay.value} ชม.
+
+Decision : ${decision}`;
+
+ return {decision,ph};
+
+}
+
+function copyText(){
+ calc();
+ navigator.clipboard.writeText(line.value);
+ alert("คัดลอกแล้ว");
+}
+
+function save(){
+
+ let r=calc();
+
+ records.unshift({
+   date:date.value,
+   time:time.value,
+   supplier:sup.value,
+   ph:r.ph,
+   decision:r.decision
+ });
+
+ localStorage.setItem("qc",JSON.stringify(records));
+
+ showHistory();
+
+ alert("บันทึกเรียบร้อย");
+
+}
+
+function showHistory(){
+
+ history.innerHTML="";
+
+ records
+ .filter(x=>x.date==search.value)
+ .forEach(x=>{
+
+ history.innerHTML+=`
+ <div class="card">
+ <b>${x.supplier}</b><br>
+ ${x.time}<br>
+ pH : ${x.ph}<br>
+ ${x.decision}
+ </div>`;
+
+ });
+
+}
+
+showHistory();
+
+if("serviceWorker" in navigator){
+ navigator.serviceWorker.register("sw.js");
+}
+
+</script>
+</body>
+</html>
