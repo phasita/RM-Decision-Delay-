@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QC Coconut RM</title>
+<style>
+body{font-family:Arial;background:#f3f4f6;margin:0}
+.box{max-width:420px;margin:auto;background:#fff;padding:16px;min-height:100vh}
+h2{text-align:center;color:#15803d}
+input,select,textarea,button{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #ccc;box-sizing:border-box}
+button{background:#16a34a;color:#fff;border:none;font-weight:bold}
+#result{padding:12px;border-radius:8px;margin:10px 0}
+.green{background:#bbf7d0}.yellow{background:#fef08a}.orange{background:#fdba74}.redlight{background:#fca5a5}.red{background:#dc2626;color:#fff}
+</style>
+</head>
+<body>
+<div class="box">
+<h2>🥥 QC Coconut RM</h2>
+
+<label>เวลา</label>
+<input id="time" type="time" value="14:30">
+
+<label>Supplier</label>
+<input id="sup" placeholder="พิมพ์ชื่อ Supplier">
+
+<label>วันที่รับเข้า</label>
+<input id="date" type="date">
+
+<label>ชนิดวัตถุดิบ</label>
+<select id="mat">
+<option>มะพร้าวขาวไม่แช่สาร</option>
+<option>มะพร้าวขาวแช่สาร</option>
+</select>
+
+<label>pH1</label>
+<input id="p1" placeholder="5.84">
+<label>pH2</label>
+<input id="p2" placeholder="5.83">
+<label>pH3</label>
+<input id="p3" placeholder="5.82">
+
+<label>รสชาติ</label>
+<select id="taste">
+<option>ปกติ</option>
+<option>เปรี้ยวเล็กน้อย</option>
+<option>เปรี้ยว</option>
+</select>
+
+<label>กลิ่น</label>
+<select id="smell">
+<option>ปกติ</option>
+<option>เปรี้ยวเล็กน้อย/โอ่เล็กน้อย</option>
+<option>เปรี้ยว/โอ่</option>
+</select>
+
+<label>Delay Time</label>
+<input id="delay" placeholder="2">
+
+<button onclick="calc()">คำนวณ</button>
+
+<div id="result"></div>
+
+<textarea id="line" rows="8"></textarea>
+
+<button onclick="copyText()">📋 Copy LINE</button>
+
+</div>
+
+<script>
+date.value=new Date().toISOString().slice(0,10);
+
+function calc(){
+
+const p=[+p1.value,+p2.value,+p3.value];
+const lt585=p.filter(x=>x<5.85).length;
+const lt575=p.filter(x=>x<5.75).length;
+
+let d="",c="";
+
+if((lt585==3)||(lt575>=2)){
+ d="ควรใช้คั้นภายใน 1 ชม. และมีมะพร้าวปกติผสม";
+ c="redlight";
+}else{
+ d="ควรใช้คั้นภายใน 1-2 ชม.";
+ c="orange";
+}
+
+result.className=c;
+result.innerHTML="<b>"+d+"</b>";
+
+line.value=`ผลการตรวจ มะพร้าวขาวในห้องเย็น ณ เวลา ${time.value} น.
+
+Supplier : ${sup.value}
+วันที่รับเข้า : ${date.value}
+ชนิดวัตถุดิบ : ${mat.value}
+
+pH : ${p1.value} / ${p2.value} / ${p3.value}
+รสชาติ : ${taste.value}
+กลิ่น : ${smell.value}
+Delay Time : ${delay.value} ชม.
+
+Decision : ${d}`;
+
+}
+
+function copyText(){
+calc();
+navigator.clipboard.writeText(line.value);
+alert("คัดลอกแล้ว");
+}
+</script>
+</body>
+</html>
