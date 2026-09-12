@@ -1,0 +1,8 @@
+{
+  "name": "QC Coconut RM",
+  "short_name": "QC RM",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#16A34A"
+}
