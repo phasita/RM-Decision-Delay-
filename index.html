@@ -206,7 +206,19 @@ function calc(){
 
  result.className=color(decision);
  result.innerHTML="<b>"+decision+"</b>";
+let icon="🟢";
 
+if(decision=="ปกติ สามารถรอการใช้คั้นได้"){
+  icon="🟢";
+}else if(decision=="ควรใช้คั้นภายใน 2-3 ชม."){
+  icon="🟡";
+}else if(decision=="ควรใช้คั้นภายใน 1-2 ชม."){
+  icon="🟠";
+}else if(decision=="ควรใช้คั้นภายใน 1 ชม. และมีมะพร้าวปกติผสม"){
+  icon="🟥";
+}else{
+  icon="🔴";
+}
  line.value=
 `ผลการตรวจ มะพร้าวขาวในห้องเย็น ณ เวลา ${time.value} น.
 
@@ -219,7 +231,7 @@ pH : ${ph}
 กลิ่น : ${s}
 Delay Time : ${delay.value} ชม.
 
-Decision : ${decision}`;
+${icon} Decision : ${decision}
 
  return {decision,ph};
 
