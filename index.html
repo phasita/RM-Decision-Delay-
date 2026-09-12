@@ -219,20 +219,7 @@ if(decision=="ปกติ สามารถรอการใช้คั้�
 }else{
   icon="🔴";
 }
- line.value=
-`ผลการตรวจ มะพร้าวขาวในห้องเย็น ณ เวลา ${time.value} น.
-
-Supplier : ${sup.value}
-วันที่รับเข้า : ${date.value}
-ชนิดวัตถุดิบ : ${mat.value}
-
-pH : ${ph}
-รสชาติ : ${t}
-กลิ่น : ${s}
-Delay Time : ${delay.value} ชม.
-
-${icon} Decision : ${decision}
-
+line.value=`ผลการตรวจ มะพร้าวขาวในห้องเย็น ณ เวลา $DIL0 น.
  return {decision,ph};
 
 }
